@@ -10,6 +10,7 @@ from flask import Flask, redirect, url_for
 from datetime import datetime
 import json
 from PIL import Image
+import base64
 
 app = Flask(__name__)
 ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
@@ -22,41 +23,53 @@ def checkToken(token):
     return True
 
 
+
 @app.route("/api/scale", methods=['POST'])
 def scale():
     """
     scale img to new size
     {“scale” : float, “token”: string, “image” : file, "filename" : string} 
     """
-
+    
     jsons = request.get_json()
     try:
         token = jsons['token']
-        image = Image.open(jsons['image'])
-        scale = jsons['scale']
         ext = jsons['ext']
+        temp = secure_filename(ext)
+        file = open(temp, "wb")
+        file.write(base64.b64decode(jsons['image']))
+        files = open (temp, "rb")
+        image = Image.open(files)
+        os.remove(temp)
+        
+        scale = jsons['scale']
+        
     except:
-        return json.dumps({'status': 'error, argument not satisfied', "image": ""})
+        return json.dumps({'status':'error, argument not satisfied', "image": ""})
 
     height = image.height * scale
     width = image.height * scale
     size = (height, width)
-    a = secure_filename()
+    a = secure_filename(ext)
     image.thumbnail(size, Image.ANTIALIAS)
     image.save(a, ext)
     image = open(a, "rb")
-    ret = {"status": "success", "image": image}
-
-    @after_this_request
-    def remove_file(response):
-        try:
-            image.close()
-            os.remove(a)
-        except Exception as error:
-            app.logger.error("Error removing or closing downloaded file handle", error)
-
+    image_data = image.read()
+    
+    ENCODING = 'utf-8'
+    
+    
+    base64_bytes = base64.b64encode(image_data)
+    image_data = base64_bytes.decode(ENCODING)
+    
+    ret = {"status": "success", "image": image_data}
+    
+    ret = json.dumps(ret)
+    file.close()
+    files.close()
+    os.remove(a)
+    
     return ret
-
 
 @app.route("/api/convert", methods=['GET', 'POST'])
 def convert():
@@ -96,7 +109,4 @@ def convert():
 
 
 if __name__ == '__main__':
-    from gevent.pywsgi import WSGIServer
-
-    http_server = WSGIServer(('', 5000), app)
-    http_server.serve_forever()
+   app.run()
