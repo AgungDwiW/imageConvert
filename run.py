@@ -9,7 +9,7 @@ from werkzeug import secure_filename
 from flask import Flask, redirect, url_for
 from datetime import datetime
 import json
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
 import base64
 
 app = Flask(__name__)
@@ -76,7 +76,7 @@ def convert():
     """
         convert img to another ext
         {“ext” : float, “token”: string, “image” : file, "filename" : string}
-        """
+    """
 
     def allowed_file(filename):
         return '.' in filename and \
@@ -104,6 +104,38 @@ def convert():
         img.save(downloadpath)
 
         downloadlink = os.path.join(request.url_root, 'static/download', filenamedownload)
+
+        return jsonify(status='OK', message='berhasil', downloadlink=downloadlink)
+
+@app.route("/api/dont", methods=['GET', 'POST'])
+def dont():
+    """
+        Do Nothing
+        {“image” : file}
+    """
+    if request.method == 'GET':
+        return jsonify(status='OK', message='HI :)')
+    else:
+        file = request.files['image']
+        filename = secure_filename(file.filename)
+        uploadpath = os.path.join('static/upload', datetime.now().strftime("%H%M%S") + filename)
+        file.save(uploadpath)
+
+        image = Image.open(uploadpath)
+        drawing = ImageDraw.Draw(image)
+
+        black = (3, 8, 12)
+        width, height = image.size
+        text = 'FPKOMPUTASIAWAN'
+        font = ImageFont.truetype("./arial.ttf", int(height / 15))
+        w, h = drawing.textsize(text, font=font)
+        pos = ((width - w) / 2, (height - h) / 2)
+        drawing.text(pos, text, fill=black, font=font)
+
+        downloadpath = os.path.join('static/download', datetime.now().strftime("%H%M%S") + filename)
+        image.save(downloadpath)
+
+        downloadlink = os.path.join(request.url_root, 'static/download', datetime.now().strftime("%H%M%S") + filename)
 
         return jsonify(status='OK', message='berhasil', downloadlink=downloadlink)
 
