@@ -91,7 +91,7 @@ def convert():
             return jsonify(status='Bad Request', message='File not allowed')
 
         filename = secure_filename(file.filename)
-        uploadpath = os.path.join('upload', datetime.now().strftime("%H%M%S") + filename)
+        uploadpath = os.path.join('static/upload', datetime.now().strftime("%H%M%S") + filename)
         file.save(uploadpath)
 
         ext = request.form.get('ext')
@@ -100,10 +100,10 @@ def convert():
         img = Image.open(uploadpath)
         img = img.convert("RGB")
         filenamedownload = datetime.now().strftime("%H%M%S") + '.' + ext
-        downloadpath = os.path.join('download', filenamedownload)
+        downloadpath = os.path.join('static/download', filenamedownload)
         img.save(downloadpath)
 
-        downloadlink = os.path.join(request.url_root, 'download', filenamedownload)
+        downloadlink = os.path.join(request.url_root, 'static/download', filenamedownload)
 
         return jsonify(status='OK', message='berhasil', downloadlink=downloadlink)
 
