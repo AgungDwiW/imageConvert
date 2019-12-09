@@ -152,12 +152,12 @@ def scale():
         file.save(uploadpath)
         scale = float(scale)
         image = Image.open(uploadpath)
-        height = image.height * scale
-        width = image.height * scale
+        height =int( image.height * scale)
+        width = int(image.height * scale)
         size = (height, width)
-        image.thumbnail(size, Image.ANTIALIAS)
-        
-        filenamedownload = datetime.now().strftime("%H%M%S") + '.' + ext
+        image = image.resize(size, Image.ANTIALIAS)
+        image = image.convert('RGB')
+        filenamedownload = datetime.now().strftime("%H%M%S") + filename
         downloadpath = os.path.join('static/download', filenamedownload)
         image.save(downloadpath)
         #downloadlink = os.path.join(request.url_root, 'static/download', filenamedownload)
@@ -171,6 +171,72 @@ def scale():
         
         return jsonify(status='OK', message='berhasil', downloadlink=downloadlink)
 
+
+@app.route("/api/resize", methods=['POST'])
+def resize():
+    """
+    scale img to new size
+    {“scale” : float, “token”: string, “image” : file, "ext" : string} 
+    """
+    def allowed_file(filename):
+        return '.' in filename and \
+               filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+    if request.method == 'GET':
+        return jsonify(status='OK', message='HI :)')
+    else:
+        """
+        =====================
+        check arguments
+        ================================
+        """
+        try:
+            height = request.form.get('height')
+            width = request.form.get('width')
+            token = request.form.get('token')
+            file = request.files['image']
+        except:
+            return jsonify(status='Error', message='arguments not satisfied')    
+        
+        userId = auth.checkToken(token)
+        """
+        =====================
+        check token / limit/ file
+        ================================
+        """
+        if userId == False:
+            return jsonify(status='Error', message='token is not valid')    
+        if (auth.checkLimit(userId)):
+            return jsonify(status='Error', message='Free limit has reached')
+        
+        if not (file and allowed_file(file.filename)):
+            return jsonify(status='Bad Request', message='File not allowed')
+        
+        """
+        =====================
+        do the operation
+        ================================
+        """
+        filename = secure_filename(file.filename)
+        uploadpath = os.path.join('static/upload', datetime.now().strftime("%H%M%S") + filename)
+        file.save(uploadpath)
+        image = Image.open(uploadpath)
+        size = (int(height), int(width))
+        image = image.resize(size, Image.ANTIALIAS)
+        image = image.convert('RGB')
+        filenamedownload = datetime.now().strftime("%H%M%S") + filename
+        downloadpath = os.path.join('static/download', filenamedownload)
+        image.save(downloadpath)
+        #downloadlink = os.path.join(request.url_root, 'static/download', filenamedownload)
+        downloadlink = auth.putFile(userId, downloadpath, request.url_root)
+        """
+        =====================
+        updating the usage
+        ================================
+        """
+        auth.updateUsage(userId, downloadlink)
+        
+        return jsonify(status='OK', message='berhasil', downloadlink=downloadlink)
 
 # grayscale
 # @app.route("/api/grayscale", methods=['POST'])
@@ -374,13 +440,12 @@ def grey():
         downloadlink = auth.putFile(userId, downloadpath, request.url_root)
         return jsonify(status='OK', message='berhasil', downloadlink=downloadlink)
 
-<<<<<<< HEAD
 @app.route("/api/download/<id_user>/<id_file>", methods=['GET'])
 def testImage(id_user, id_file):
     path = auth.getFile(id_user, id_file)
     return send_file(path)
     
-=======
+
 @app.route("/api/exif", methods=['GET', 'POST'])
 def exif():
     """
@@ -417,7 +482,6 @@ def exif():
         img.save(downloadpath)
 
         # downloadlink = os.path.join(request.url_root, 'static/download', datetime.now().strftime("%H%M%S") + filename)
->>>>>>> 8bf858780155724c93ed639aafa79d5ed97f1580
 
         return jsonify(status='OK', message='berhasil',exif=exif)
 
