@@ -73,12 +73,33 @@ ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
 #     g.user = user
 #     return True
     
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-def checkToken(token):
-    """
-    check token; in progress
-    """
-    return True
+
+from authModel import Auth
+
+auth = Auth()
+
+@app.route("/api/login", methods=['POST'])
+def login():
+    try:
+        user = request.form.get("id")
+        password = request.form.get("password")
+    except:
+        return jsonify(status='Error', message='arguments not satisfied')    
+    return auth.login(user,password)
+
+@app.route("/api/register", methods=['POST'])
+def register():
+    try:
+        user = request.form.get("id")
+        password = request.form.get("password")
+        tipe = request.form.get("userType")
+    except:
+        return jsonify(status='Error', message='arguments not satisfied')    
+    return auth.register(user,password, tipe)
 
 
 
@@ -86,48 +107,69 @@ def checkToken(token):
 def scale():
     """
     scale img to new size
-    {“scale” : float, “token”: string, “image” : file, "filename" : string} 
+    {“scale” : float, “token”: string, “image” : file, "ext" : string} 
     """
-    
-    jsons = request.get_json()
-    try:
-        token = jsons['token']
-        ext = jsons['ext']
-        temp = secure_filename(ext)
-        file = open(temp, "wb")
-        file.write(base64.b64decode(jsons['image']))
-        files = open (temp, "rb")
-        image = Image.open(files)
-        os.remove(temp)
-        
-        scale = jsons['scale']
-        
-    except:
-        return json.dumps({'status':'error, argument not satisfied', "image": ""})
+    def allowed_file(filename):
+        return '.' in filename and \
+               filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-    height = image.height * scale
-    width = image.height * scale
-    size = (height, width)
-    a = secure_filename(ext)
-    image.thumbnail(size, Image.ANTIALIAS)
-    image.save(a, ext)
-    image = open(a, "rb")
-    image_data = image.read()
-    
-    ENCODING = 'utf-8'
-    
-    
-    base64_bytes = base64.b64encode(image_data)
-    image_data = base64_bytes.decode(ENCODING)
-    
-    ret = {"status": "success", "image": image_data}
-    
-    ret = json.dumps(ret)
-    file.close()
-    files.close()
-    os.remove(a)
-    
-    return ret
+    if request.method == 'GET':
+        return jsonify(status='OK', message='HI :)')
+    else:
+        """
+        =====================
+        check arguments
+        ================================
+        """
+        try:
+            scale = request.form.get('scale')
+            token = request.form.get('token')
+            file = request.files['image']
+        except:
+            return jsonify(status='Error', message='arguments not satisfied')    
+        
+        userId = auth.checkToken(token)
+        """
+        =====================
+        check token / limit/ file
+        ================================
+        """
+        if userId == False:
+            return jsonify(status='Error', message='token is not valid')    
+        if (auth.checkLimit(userId)):
+            return jsonify(status='Error', message='Free limit has reached')
+        
+        if not (file and allowed_file(file.filename)):
+            return jsonify(status='Bad Request', message='File not allowed')
+        
+        """
+        =====================
+        do the operation
+        ================================
+        """
+        filename = secure_filename(file.filename)
+        uploadpath = os.path.join('static/upload', datetime.now().strftime("%H%M%S") + filename)
+        file.save(uploadpath)
+        scale = float(scale)
+        image = Image.open(uploadpath)
+        height = image.height * scale
+        width = image.height * scale
+        size = (height, width)
+        image.thumbnail(size, Image.ANTIALIAS)
+        
+        filenamedownload = datetime.now().strftime("%H%M%S") + '.' + ext
+        downloadpath = os.path.join('static/download', filenamedownload)
+        image.save(downloadpath)
+        downloadlink = os.path.join(request.url_root, 'static/download', filenamedownload)
+        """
+        =====================
+        updating the usage
+        ================================
+        """
+        auth.updateUsage(userId, downloadlink)
+        
+        return jsonify(status='OK', message='berhasil', downloadlink=downloadlink)
+
 
 # grayscale
 # @app.route("/api/grayscale", methods=['POST'])
@@ -185,14 +227,28 @@ def convert():
         {“ext” : float, “token”: string, “image” : file, "filename" : string}
     """
 
-    def allowed_file(filename):
-        return '.' in filename and \
-               filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
+   
     if request.method == 'GET':
         return jsonify(status='OK', message='HI :)')
     else:
+        
+        """
+        =====================
+        check token / limit/ file
+        ================================
+        """
         file = request.files['image']
+        token = request.form.get('token')
+        userId = auth.checkToken(token)
+        if userId == False:
+            return jsonify(status='Error', message='token is not valid')    
+        if (auth.checkLimit(userId)):
+            return jsonify(status='Error', message='Free limit has reached')
+        
+        if not (file and allowed_file(file.filename)):
+            return jsonify(status='Bad Request', message='File not allowed')
+
+        
 
         if not (file and allowed_file(file.filename)):
             return jsonify(status='Bad Request', message='File not allowed')
@@ -223,7 +279,24 @@ def dont():
     if request.method == 'GET':
         return jsonify(status='OK', message='HI :)')
     else:
+        """
+        =====================
+        check token / limit/ file
+        ================================
+        """
         file = request.files['image']
+        token = request.form.get('token')
+        userId = auth.checkToken(token)
+        if userId == False:
+            return jsonify(status='Error', message='token is not valid')    
+        if (auth.checkLimit(userId)):
+            return jsonify(status='Error', message='Free limit has reached')
+        
+        if not (file and allowed_file(file.filename)):
+            return jsonify(status='Bad Request', message='File not allowed')
+
+
+        
         filename = secure_filename(file.filename)
         uploadpath = os.path.join('static/upload', datetime.now().strftime("%H%M%S") + filename)
         file.save(uploadpath)
@@ -257,12 +330,29 @@ def grey():
     if request.method == 'GET':
         return jsonify(status='OK', message='HI :)')
     else:
+        """
+        =====================
+        check token / limit/ file
+        ================================
+        """
+        token = request.form.get('token')
         file = request.files['image']
+        userId = auth.checkToken(token)
+        if userId == False:
+            return jsonify(status='Error', message='token is not valid')    
+        if (auth.checkLimit(userId)):
+            return jsonify(status='Error', message='Free limit has reached')
+        
+        if not (file and allowed_file(file.filename)):
+            return jsonify(status='Bad Request', message='File not allowed')
+
+        
         filename = secure_filename(file.filename)
         uploadpath = os.path.join('static/upload', datetime.now().strftime("%H%M%S") + filename)
         file.save(uploadpath)
 
         image = Image.open(uploadpath).convert('LA')
+        image = image.convert('RGB')
         # in case not member
         drawing = ImageDraw.Draw(image)
         black = (3, 8, 12)

@@ -8,4 +8,4 @@ pickledb
 gevent
 redis
 PyJWT
-
+pymysql
