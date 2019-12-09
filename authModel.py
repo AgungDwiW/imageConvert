@@ -130,6 +130,29 @@ class Auth :
         usage = self.checkUsage(id_user)
         if (usage>self.maxFree):
             return True
+    
+    def putFile(self, id_user, filepath, root):
+        """
+        check wether an user hit its limit; 
+        """
+        try:
+            self.cursor.execute("insert into storage (filepath, id_user) values('"+
+                                str(filepath)+"', '"+ str(id_user)+"')")
+            self.db.commit()
+            idFile = self.cursor.lastrowid
+            link = os.path.join(str(root),"api/download", str(id_user),  str(idFile))
+            return link
+        except:
+            return False
+    
+    def getFile(self, id_user, id_file):
+        try:
+            self.cursor.execute("select filepath from storage where id_user = '" 
+                                +str(id_user) + "' and id = '"+ str(id_file)+"'")
+            result = self.cursor.fetchall()
+            return result[0][0]
+        except:
+            return False
 
 if __name__ == "__main__":
     auth = Auth()

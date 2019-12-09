@@ -1,6 +1,6 @@
 import datetime
 
-from flask import Flask, request, jsonify, make_response, after_this_request
+from flask import Flask, request, jsonify, make_response, after_this_request, send_file
 import json
 import os
 from flask import request
@@ -160,7 +160,8 @@ def scale():
         filenamedownload = datetime.now().strftime("%H%M%S") + '.' + ext
         downloadpath = os.path.join('static/download', filenamedownload)
         image.save(downloadpath)
-        downloadlink = os.path.join(request.url_root, 'static/download', filenamedownload)
+        #downloadlink = os.path.join(request.url_root, 'static/download', filenamedownload)
+        downloadlink = auth.putFile(userId, downloadpath, request.url_root)
         """
         =====================
         updating the usage
@@ -264,9 +265,11 @@ def convert():
         img = img.convert("RGB")
         filenamedownload = datetime.now().strftime("%H%M%S") + '.' + ext
         downloadpath = os.path.join('static/download', filenamedownload)
+        
         img.save(downloadpath)
 
-        downloadlink = os.path.join(request.url_root, 'static/download', filenamedownload)
+        #downloadlink = os.path.join(request.url_root, 'static/download', filenamedownload)
+        downloadlink = auth.putFile(userId, downloadpath, request.url_root)
 
         return jsonify(status='OK', message='berhasil', downloadlink=downloadlink)
 
@@ -317,7 +320,8 @@ def dont():
         downloadpath = os.path.join('static/download', datetime.now().strftime("%H%M%S") + filename)
         image.save(downloadpath)
 
-        downloadlink = os.path.join(request.url_root, 'static/download', datetime.now().strftime("%H%M%S") + filename)
+        #downloadlink = os.path.join(request.url_root, 'static/download', datetime.now().strftime("%H%M%S") + filename)
+        downloadlink = auth.putFile(userId, downloadpath, request.url_root)
 
         return jsonify(status='OK', message='berhasil', downloadlink=downloadlink)
 
@@ -366,10 +370,15 @@ def grey():
         downloadpath = os.path.join('static/download', datetime.now().strftime("%H%M%S") + filename)
         image.save(downloadpath)
 
-        downloadlink = os.path.join(request.url_root, 'static/download', datetime.now().strftime("%H%M%S") + filename)
-
+        #downloadlink = os.path.join(request.url_root, 'static/download', datetime.now().strftime("%H%M%S") + filename)
+        downloadlink = auth.putFile(userId, downloadpath, request.url_root)
         return jsonify(status='OK', message='berhasil', downloadlink=downloadlink)
 
+@app.route("/api/download/<id_user>/<id_file>", methods=['GET'])
+def testImage(id_user, id_file):
+    path = auth.getFile(id_user, id_file)
+    return send_file(path)
+    
 
 
 
