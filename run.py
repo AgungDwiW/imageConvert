@@ -387,6 +387,7 @@ def exif():
         img = Image.open(uploadpath)
         print("path : "+uploadpath)
         img_exif = img.getexif()
+        exif=[]
         if img_exif:
             print(type(img_exif))
             # <class 'PIL.Image.Exif'>
@@ -396,9 +397,9 @@ def exif():
             img_exif_dict = dict(img_exif)
             for key, val in img_exif_dict.items():
                 if key in ExifTags.TAGS:
-                    print(ExifTags.TAGS[key] + " - " + str(val))
+                    exif.append(ExifTags.TAGS[key] + " - " + str(val))
         else:
-            print("Sorry, image has no exif data.")
+            exif.append("Sorry, image has no exif data.")
         # print("exif_data")
         # print(exif_data)
         downloadpath = os.path.join('static/download', datetime.now().strftime("%H%M%S") + filename)
@@ -406,7 +407,7 @@ def exif():
 
         # downloadlink = os.path.join(request.url_root, 'static/download', datetime.now().strftime("%H%M%S") + filename)
 
-        return jsonify(status='OK', message='berhasil')
+        return jsonify(status='OK', message='berhasil',exif=exif)
 
 
 if __name__ == '__main__':
