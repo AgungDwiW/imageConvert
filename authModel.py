@@ -16,9 +16,9 @@ class Auth :
         connect to database
         """
         dbCon = {
-        "server" : "127.0.0.1",
+        "server" : "104.215.196.45",
         "id" : "root",
-        "pass" : "",
+        "pass" : "password",
         "db" : "imageconverter"
         }        
         self.maxFree = 30000000
