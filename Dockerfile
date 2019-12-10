@@ -1,6 +1,11 @@
 # our base image
 FROM python:3.6-alpine
 
+RUN ln -s /usr/lib/x86_64-linux-gnu/libz.so /lib/
+RUN ln -s /usr/lib/x86_64-linux-gnu/libjpeg.so /lib/
+RUN pip install -U pip
+RUN pip install -U Pillow-SIMD
+
 RUN apk add --no-cache --virtual .build-deps gcc musl-dev
 RUN pip install cython
 
@@ -10,7 +15,6 @@ RUN pip install --no-cache-dir -r /usr/src/app/requirements.txt
 
 # copy files required for the app to run
 COPY *.py /usr/src/app/
-COPY *.db /usr/src/app/
 
 # tell the port number the container should expose
 EXPOSE 5000
