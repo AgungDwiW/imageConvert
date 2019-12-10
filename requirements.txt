@@ -1,4 +1,4 @@
-PIL
+pillow
 werkzeug
 greenlet
 flask
