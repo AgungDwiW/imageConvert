@@ -82,6 +82,10 @@ from authModel import Auth
 
 auth = Auth()
 
+@app.route("/api")
+def hai():
+    return ':)'
+
 @app.route("/api/login", methods=['POST'])
 def login():
     try:
