@@ -152,7 +152,7 @@ def scale():
         ================================
         """
         filename = secure_filename(file.filename)
-        uploadpath = os.path.join('static/upload', datetime.now().strftime("%H%M%S") + filename)
+        uploadpath = os.path.join('./static/upload', datetime.now().strftime("%H%M%S") + filename)
         file.save(uploadpath)
         scale = float(scale)
         image = Image.open(uploadpath)
@@ -162,7 +162,7 @@ def scale():
         image = image.resize(size, Image.ANTIALIAS)
         image = image.convert('RGB')
         filenamedownload = datetime.now().strftime("%H%M%S") + filename
-        downloadpath = os.path.join('static/download', filenamedownload)
+        downloadpath = os.path.join('./static/download', filenamedownload)
         image.save(downloadpath)
         #downloadlink = os.path.join(request.url_root, 'static/download', filenamedownload)
         downloadlink = auth.putFile(userId, downloadpath, request.url_root)
@@ -222,14 +222,14 @@ def resize():
         ================================
         """
         filename = secure_filename(file.filename)
-        uploadpath = os.path.join('static/upload', datetime.now().strftime("%H%M%S") + filename)
+        uploadpath = os.path.join('./static/upload', datetime.now().strftime("%H%M%S") + filename)
         file.save(uploadpath)
         image = Image.open(uploadpath)
         size = (int(height), int(width))
         image = image.resize(size, Image.ANTIALIAS)
         image = image.convert('RGB')
         filenamedownload = datetime.now().strftime("%H%M%S") + filename
-        downloadpath = os.path.join('static/download', filenamedownload)
+        downloadpath = os.path.join('./static/download', filenamedownload)
         image.save(downloadpath)
         #downloadlink = os.path.join(request.url_root, 'static/download', filenamedownload)
         downloadlink = auth.putFile(userId, downloadpath, request.url_root)
@@ -325,7 +325,7 @@ def convert():
             return jsonify(status='Bad Request', message='File not allowed')
 
         filename = secure_filename(file.filename)
-        uploadpath = os.path.join('static/upload', datetime.now().strftime("%H%M%S") + filename)
+        uploadpath = os.path.join('./static/upload', datetime.now().strftime("%H%M%S") + filename)
         file.save(uploadpath)
 
         ext = request.form.get('ext')
@@ -334,7 +334,7 @@ def convert():
         img = Image.open(uploadpath)
         img = img.convert("RGB")
         filenamedownload = datetime.now().strftime("%H%M%S") + '.' + ext
-        downloadpath = os.path.join('static/download', filenamedownload)
+        downloadpath = os.path.join('./static/download', filenamedownload)
         
         img.save(downloadpath)
 
@@ -371,7 +371,7 @@ def dont():
 
         
         filename = secure_filename(file.filename)
-        uploadpath = os.path.join('static/upload', datetime.now().strftime("%H%M%S") + filename)
+        uploadpath = os.path.join('./static/upload', datetime.now().strftime("%H%M%S") + filename)
         file.save(uploadpath)
 
         image = Image.open(uploadpath)
@@ -387,7 +387,7 @@ def dont():
         pos = ((width - w) / 2, (height - h) / 2)
         drawing.text(pos, text, fill=black, font=font)
         #-------------------------
-        downloadpath = os.path.join('static/download', datetime.now().strftime("%H%M%S") + filename)
+        downloadpath = os.path.join('./static/download', datetime.now().strftime("%H%M%S") + filename)
         image.save(downloadpath)
 
         #downloadlink = os.path.join(request.url_root, 'static/download', datetime.now().strftime("%H%M%S") + filename)
@@ -422,7 +422,7 @@ def grey():
 
         
         filename = secure_filename(file.filename)
-        uploadpath = os.path.join('static/upload', datetime.now().strftime("%H%M%S") + filename)
+        uploadpath = os.path.join('./static/upload', datetime.now().strftime("%H%M%S") + filename)
         file.save(uploadpath)
 
         image = Image.open(uploadpath).convert('LA')
@@ -437,7 +437,7 @@ def grey():
         pos = ((width - w) / 2, (height - h) / 2)
         drawing.text(pos, text, font=font)
 
-        downloadpath = os.path.join('static/download', datetime.now().strftime("%H%M%S") + filename)
+        downloadpath = os.path.join('./static/download', datetime.now().strftime("%H%M%S") + filename)
         image.save(downloadpath)
 
         #downloadlink = os.path.join(request.url_root, 'static/download', datetime.now().strftime("%H%M%S") + filename)
@@ -461,7 +461,7 @@ def exif():
     else:
         file = request.files['image']
         filename = secure_filename(file.filename)
-        uploadpath = os.path.join('static/upload', datetime.now().strftime("%H%M%S") + filename)
+        uploadpath = os.path.join('./static/upload', datetime.now().strftime("%H%M%S") + filename)
         file.save(uploadpath)
 
         img = Image.open(uploadpath)
@@ -482,7 +482,7 @@ def exif():
             exif.append("Sorry, image has no exif data.")
         # print("exif_data")
         # print(exif_data)
-        downloadpath = os.path.join('static/download', datetime.now().strftime("%H%M%S") + filename)
+        downloadpath = os.path.join('./static/download', datetime.now().strftime("%H%M%S") + filename)
         img.save(downloadpath)
 
         # downloadlink = os.path.join(request.url_root, 'static/download', datetime.now().strftime("%H%M%S") + filename)
@@ -491,4 +491,4 @@ def exif():
 
 
 if __name__ == '__main__':
-   app.run()
+   app.run(host='0.0.0.0',port=5000)
