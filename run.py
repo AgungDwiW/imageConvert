@@ -248,6 +248,45 @@ def dont():
 
         return jsonify(status='OK', message='berhasil', downloadlink=downloadlink)
 
+@app.route("/api/exif", methods=['GET', 'POST'])
+def exif():
+    """
+        Do Nothing
+        {“image” : file}
+    """
+    if request.method == 'GET':
+        return jsonify(status='OK', message='HI :)')
+    else:
+        file = request.files['image']
+        filename = secure_filename(file.filename)
+        uploadpath = os.path.join('static/upload', datetime.now().strftime("%H%M%S") + filename)
+        file.save(uploadpath)
+
+        img = Image.open(uploadpath)
+        print("path : "+uploadpath)
+        img_exif = img.getexif()
+        if img_exif:
+            print(type(img_exif))
+            # <class 'PIL.Image.Exif'>
+            print(dict(img_exif))
+            # { .. 271: 'FUJIFILM', 305: 'Adobe Photoshop Lightroom 6.14 (Macintosh)', }
+
+            img_exif_dict = dict(img_exif)
+            for key, val in img_exif_dict.items():
+                if key in ExifTags.TAGS:
+                    print(ExifTags.TAGS[key] + " - " + str(val))
+        else:
+            print("Sorry, image has no exif data.")
+        # print("exif_data")
+        # print(exif_data)
+        downloadpath = os.path.join('static/download', datetime.now().strftime("%H%M%S") + filename)
+        img.save(downloadpath)
+
+        # downloadlink = os.path.join(request.url_root, 'static/download', datetime.now().strftime("%H%M%S") + filename)
+
+        return jsonify(status='OK', message='berhasil')
+
+
 @app.route("/api/grey", methods=['GET', 'POST'])
 def grey():
     """
