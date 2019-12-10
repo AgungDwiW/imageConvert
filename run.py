@@ -426,16 +426,8 @@ def grey():
         file.save(uploadpath)
 
         image = Image.open(uploadpath).convert('LA')
-        image = image.convert('RGB')
+        
         # in case not member
-        drawing = ImageDraw.Draw(image)
-        black = (3, 8, 12)
-        width, height = image.size
-        text = 'FPKOMPUTASIAWAN'
-        font = ImageFont.truetype("./arial.ttf", int(height / 15))
-        w, h = drawing.textsize(text, font=font)
-        pos = ((width - w) / 2, (height - h) / 2)
-        drawing.text(pos, text, font=font)
 
         downloadpath = os.path.join('./static/download', datetime.now().strftime("%H%M%S") + filename)
         image.save(downloadpath)
