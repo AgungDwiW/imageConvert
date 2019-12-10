@@ -4,7 +4,6 @@ FROM python:3.6-alpine
 RUN ln -s /usr/lib/x86_64-linux-gnu/libz.so /lib/
 RUN ln -s /usr/lib/x86_64-linux-gnu/libjpeg.so /lib/
 RUN pip install -U pip
-RUN pip install -U Pillow-SIMD
 
 RUN apk add --no-cache --virtual .build-deps gcc musl-dev
 RUN pip install cython
