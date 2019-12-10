@@ -424,8 +424,8 @@ def grey():
         filename = secure_filename(file.filename)
         uploadpath = os.path.join('./static/upload', datetime.now().strftime("%H%M%S") + filename)
         file.save(uploadpath)
-
-        image = Image.open(uploadpath).convert('LA')
+        image = Image.open(uploadpath).convert('RGB')
+        image.convert('LA')
         
         # in case not member
 
